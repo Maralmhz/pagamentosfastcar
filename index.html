@@ -1,167 +1,41 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pagamento - FASTCAR (Vitor Hugo)</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:20px;min-height:100vh}
-.container{max-width:1200px;margin:0 auto;background:#fff;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.2);overflow:hidden}
-.header{background:linear-gradient(135deg,#1e3c72 0%,#2a5298 100%);color:#fff;padding:24px;text-align:center}
-.header img{width:56px;height:56px;border-radius:10px;background:#fff;padding:4px;margin-bottom:10px}
-.header h1{font-size:24px;margin-bottom:8px}
-.header p{font-size:14px;opacity:.9}
-.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;padding:24px;background:#f8f9fa;border-bottom:1px solid #e0e0e0}
-.summary-card{background:#fff;padding:16px;border-radius:8px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.08)}
-.summary-card h3{font-size:13px;color:#666;margin-bottom:8px}
-.summary-card .value{font-size:22px;font-weight:700;color:#1e3c72}
-.summary-card .value.pending{color:#e74c3c}
-.summary-card .value.paid{color:#27ae60}
-.summary-card .value.scheduled{color:#2980b9}
-.filtros{display:flex;gap:12px;flex-wrap:wrap;padding:16px 24px;background:#f8f9fa;border-bottom:1px solid #e0e0e0}
-.filtros select{padding:8px 10px;border-radius:6px;border:1px solid #ccc;font-size:13px}
-.table-container{overflow-x:auto;padding:24px}
-table{width:100%;border-collapse:collapse;font-size:14px}
-thead{background:#1e3c72;color:#fff}
-th,td{padding:12px 16px;text-align:left;border-bottom:1px solid #e0e0e0}
-th{font-weight:600;text-transform:uppercase;font-size:12px;letter-spacing:.5px}
-tbody tr:hover{background:#f5f7fa}
-.status{padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;display:inline-block}
-.status.pendente{background:#fee;color:#e74c3c}
-.status.pago{background:#e8f8f0;color:#27ae60}
-.status.agendado{background:#eaf3fc;color:#2980b9}
-.status.vencido{background:#fde2e2;color:#c0392b}
-.valor{font-weight:600;color:#1e3c72}
-.actions{padding:16px 24px;background:#f8f9fa;border-top:1px solid #e0e0e0;display:flex;gap:12px;flex-wrap:wrap}
-.btn{padding:10px 20px;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-block;color:#fff}
-.btn-primary{background:linear-gradient(135deg,#1e3c72 0%,#2a5298 100%)}
-.btn-primary:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(30,60,114,.3)}
-.btn-success{background:#27ae60}
-.btn-success:hover{background:#219a52}
-.btn-info{background:#3498db}
-.btn-info:hover{background:#2980b9}
-.btn-warning{background:#f39c12}
-.btn-danger{background:#e74c3c}
-.btn-sm{padding:6px 12px;font-size:12px}
-.cards-mobile{display:none}
-.nota-card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:16px;margin-bottom:12px;box-shadow:0 2px 6px rgba(0,0,0,.05)}
-.nota-card .linha{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;border-bottom:1px solid #f0f0f0}
-.nota-card .linha:last-of-type{border-bottom:none}
-.nota-card .linha span:first-child{color:#666;font-weight:600}
-.nota-card .acoes-card{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-@media (max-width:768px){
-  .header h1{font-size:20px}
-  .summary{grid-template-columns:1fr 1fr}
-  .table-container{display:none}
-  .cards-mobile{display:block;padding:16px}
-}
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);align-items:center;justify-content:center;z-index:100;padding:16px}
-.modal-overlay.ativo{display:flex}
-.modal{background:#fff;padding:24px;border-radius:12px;width:100%;max-width:420px;max-height:90vh;overflow:auto;color:#333}
-.modal h2{margin-bottom:10px;font-size:18px;color:#1e3c72}
-.modal label{display:block;font-size:12px;color:#666;margin:10px 0 4px}
-.modal input,.modal select,.modal textarea{width:100%;padding:8px 10px;border-radius:6px;border:1px solid #ccc;font-size:13px}
-.modal-acoes{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
-@media print{.actions,.filtros,.header .btn{display:none!important}}
-.loading{text-align:center;padding:40px;color:#666}
-</style>
-</head>
-<body>
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Pagamento - FASTCAR (Vitor Hugo)</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:20px;min-height:100vh}.container{max-width:1200px;margin:0 auto;background:#fff;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.2);overflow:hidden}.header{background:linear-gradient(135deg,#1e3c72 0%,#2a5298 100%);color:#fff;padding:24px;text-align:center}.header h1{font-size:24px;margin-bottom:8px}.header p{font-size:14px;opacity:.9}.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;padding:24px;background:#f8f9fa;border-bottom:1px solid #e0e0e0}.summary-card{background:#fff;padding:16px;border-radius:8px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.08)}.summary-card h3{font-size:13px;color:#666;margin-bottom:8px}.summary-card .value{font-size:22px;font-weight:700;color:#1e3c72}.summary-card .value.pending{color:#e74c3c}.summary-card .value.paid{color:#27ae60}.summary-card .value.scheduled{color:#2980b9}.filtros{display:flex;gap:12px;flex-wrap:wrap;padding:16px 24px;background:#f8f9fa;border-bottom:1px solid #e0e0e0}.filtros select{padding:8px 10px;border-radius:6px;border:1px solid #ccc;font-size:13px}.table-container{overflow-x:auto;padding:24px}table{width:100%;border-collapse:collapse;font-size:14px}thead{background:#1e3c72;color:#fff}th,td{padding:12px 16px;text-align:left;border-bottom:1px solid #e0e0e0}th{font-weight:600;text-transform:uppercase;font-size:12px;letter-spacing:.5px}tbody tr:hover{background:#f5f7fa}.status{padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;display:inline-block}.status.pendente{background:#fee;color:#e74c3c}.status.pago{background:#e8f8f0;color:#27ae60}.status.agendado{background:#eaf3fc;color:#2980b9}.status.vencido{background:#fde2e2;color:#c0392b}.valor{font-weight:600;color:#1e3c72}.actions{padding:16px 24px;background:#f8f9fa;border-top:1px solid #e0e0e0;display:flex;gap:12px;flex-wrap:wrap}.btn{padding:10px 20px;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-block;color:#fff}.btn-primary{background:linear-gradient(135deg,#1e3c72 0%,#2a5298 100%)}.btn-success{background:#27ae60}.btn-info{background:#3498db}.btn-warning{background:#f39c12}.btn-danger{background:#e74c3c}.btn-sm{padding:6px 12px;font-size:12px}.cards-mobile{display:none}.nota-card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:16px;margin-bottom:12px;box-shadow:0 2px 6px rgba(0,0,0,.05)}.nota-card .linha{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;border-bottom:1px solid #f0f0f0}.nota-card .linha:last-of-type{border-bottom:none}.nota-card .linha span:first-child{color:#666;font-weight:600}.nota-card .acoes-card{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}@media (max-width:768px){.header h1{font-size:20px}.summary{grid-template-columns:1fr 1fr}.table-container{display:none}.cards-mobile{display:block;padding:16px}}.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);align-items:center;justify-content:center;z-index:100;padding:16px}.modal-overlay.ativo{display:flex}.modal{background:#fff;padding:24px;border-radius:12px;width:100%;max-width:420px;max-height:90vh;overflow:auto;color:#333}.modal h2{margin-bottom:10px;font-size:18px;color:#1e3c72}.modal label{display:block;font-size:12px;color:#666;margin:10px 0 4px}.modal input,.modal select,.modal textarea{width:100%;padding:8px 10px;border-radius:6px;border:1px solid #ccc;font-size:13px}.modal .linha2{display:flex;gap:10px}.modal .linha2 > div{flex:1}.modal-acoes{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}@media print{.actions,.filtros,.header .btn{display:none!important}}.loading{text-align:center;padding:40px;color:#666}</style></head><body>
 <div class="container">
-<div class="header">
-<img src="https://raw.githubusercontent.com/Maralmhz/pagamentosfastcar/main/logo.png" onerror="this.style.display='none'">
-<h1>Controle de Pagamento</h1>
-<p>FASTCAR (Vitor Hugo)</p>
-</div>
+<div class="header"><h1>Controle de Pagamento</h1><p>FASTCAR (Vitor Hugo)</p></div>
 <div class="summary" id="resumo"></div>
 <div class="filtros">
 <select id="filtroMes"><option value="">Todos os meses</option></select>
-<select id="filtroStatus">
-<option value="">Todos os status</option>
-<option value="pendente">Pendente</option>
-<option value="agendado">Agendado</option>
-<option value="pago">Pago</option>
-<option value="vencido">Vencido</option>
-</select>
+<select id="filtroStatus"><option value="">Todos os status</option><option value="pendente">Pendente</option><option value="agendado">Agendado</option><option value="pago">Pago</option><option value="vencido">Vencido</option></select>
 </div>
-<div id="loadingMsg" class="loading">Carregando dados...</div>
+<div class="loading" id="loadingMsg">Carregando dados...</div>
 <div class="table-container">
-<table>
-<thead>
-<tr>
-<th>Data</th><th>Veiculo</th><th>Placa</th><th>NF</th><th>Valor</th><th>Status</th><th>Agendado</th><th>Pago em</th><th>Observacoes</th><th>Acoes</th>
-</tr>
-</thead>
-<tbody id="tabela"></tbody>
-</table>
+<table><thead><tr><th>Data</th><th>Veiculo</th><th>Placa</th><th>NF</th><th>Valor</th><th>Parcela</th><th>Status</th><th>Agendado</th><th>Pago em</th><th>Observacoes</th><th>Acoes</th></tr></thead><tbody id="tabela"></tbody></table>
 </div>
 <div class="cards-mobile" id="cardsMobile"></div>
-<div class="actions">
-<button class="btn btn-primary" onclick="window.print()">Imprimir</button>
-<button class="btn btn-success" onclick="abrirNovo()">+ Nova nota</button>
-</div>
+<div class="actions"><button class="btn btn-primary" onclick="window.print()">Imprimir</button><button class="btn btn-success" onclick="abrirNovo()">+ Nova nota</button></div>
 </div>
 
-<div class="modal-overlay" id="modalSenha">
-<div class="modal">
-<h2>Senha necessaria</h2>
-<label>Digite a senha para continuar</label>
-<input id="senhaInput" type="password" maxlength="4">
-<div class="modal-acoes">
-<button class="btn btn-danger" onclick="fecharSenha()">Cancelar</button>
-<button class="btn btn-success" onclick="confirmarSenha()">Confirmar</button>
-</div>
-</div>
-</div>
+<div class="modal-overlay" id="modalSenha"><div class="modal"><h2>Senha necessaria</h2><label>Digite a senha para continuar</label><input id="senhaInput" type="password" maxlength="4"><div class="modal-acoes"><button class="btn btn-danger" onclick="fecharSenha()">Cancelar</button><button class="btn btn-success" onclick="confirmarSenha()">Confirmar</button></div></div></div>
 
-<div class="modal-overlay" id="modalOverlay">
-<div class="modal">
-<h2 id="modalTitulo">Nova nota</h2>
+<div class="modal-overlay" id="modalOverlay"><div class="modal"><h2 id="modalTitulo">Nova nota</h2>
 <input type="hidden" id="idEdicao">
-<label>Veiculo</label>
-<input id="mVeiculo">
-<label>Placa</label>
-<input id="mPlaca" placeholder="Ex: ABC1D23">
-<label>Numero da NF</label>
-<input id="mNf">
-<label>Valor (R$)</label>
-<input id="mValor" type="number" step="0.01">
-<label>Data de vencimento</label>
-<input id="mVencimento" type="date">
-<label>Data agendada para pagamento</label>
-<input id="mAgendado" type="date">
-<label>Observacoes</label>
-<textarea id="mObs"></textarea>
-<div class="modal-acoes">
-<button class="btn btn-danger" onclick="fecharModal()">Cancelar</button>
-<button class="btn btn-success" onclick="salvarNota()">Salvar</button>
-</div>
-</div>
-</div>
+<label>Veiculo</label><input id="mVeiculo">
+<label>Placa</label><input id="mPlaca" placeholder="Ex: ABC1D23">
+<label>Numero da NF</label><input id="mNf">
+<label>Valor (R$)</label><input id="mValor" type="number" step="0.01">
+<div class="linha2"><div><label>Parcela atual</label><input id="mParcelaAtual" type="number" min="1" value="1"></div><div><label>Total de parcelas</label><input id="mParcelaTotal" type="number" min="1" value="1"></div></div>
+<label>Data de vencimento</label><input id="mVencimento" type="date">
+<label>Data agendada para pagamento</label><input id="mAgendado" type="date">
+<label>Observacoes</label><textarea id="mObs"></textarea>
+<div class="modal-acoes"><button class="btn btn-danger" onclick="fecharModal()">Cancelar</button><button class="btn btn-success" onclick="salvarNota()">Salvar</button></div>
+</div></div>
 
-<div class="modal-overlay" id="modalPagOverlay">
-<div class="modal">
-<h2>Registrar pagamento</h2>
+<div class="modal-overlay" id="modalPagOverlay"><div class="modal"><h2>Registrar pagamento</h2>
 <input type="hidden" id="idPagamento">
-<label>Data do pagamento</label>
-<input id="pData" type="date">
-<label>Forma de pagamento</label>
-<select id="pForma">
-<option>PIX</option>
-<option>Transferencia</option>
-<option>Dinheiro</option>
-<option>Cartao</option>
-<option>Boleto</option>
-</select>
-<label>Observacoes</label>
-<textarea id="pObs"></textarea>
-<div class="modal-acoes">
-<button class="btn btn-danger" onclick="fecharModalPag()">Cancelar</button>
-<button class="btn btn-success" onclick="confirmarPagamento()">Confirmar pagamento</button>
-</div>
-</div>
-</div>
+<label>Data do pagamento</label><input id="pData" type="date">
+<label>Forma de pagamento</label><select id="pForma"><option>PIX</option><option>Transferencia</option><option>Dinheiro</option><option>Cartao</option><option>Boleto</option></select>
+<label>Observacoes</label><textarea id="pObs"></textarea>
+<div class="modal-acoes"><button class="btn btn-danger" onclick="fecharModalPag()">Cancelar</button><button class="btn btn-success" onclick="confirmarPagamento()">Confirmar pagamento</button></div>
+</div></div>
 
 <script>
 const SENHA = "1010";
@@ -194,6 +68,12 @@ function formatarData(d){
 function dataISO(d){
   if(!d) return "";
   return typeof d === "string" ? d.slice(0,10) : new Date(d).toISOString().slice(0,10);
+}
+function somarMeses(dataStr, meses){
+  if(!dataStr) return "";
+  const [y,m,d] = dataStr.split("-").map(Number);
+  const dt = new Date(y, m-1+meses, d);
+  return dt.toISOString().slice(0,10);
 }
 function calcularStatus(item){
   if(item.pagoem) return "pago";
@@ -236,14 +116,15 @@ function renderizarResumo(lista){
     <div class="summary-card"><h3>Servicos</h3><div class="value">${lista.length}</div></div>
   `;
 }
-
+function textoParcela(i){
+  const t = i.parcelatotal || 1;
+  if(t <= 1) return "Unica";
+  return (i.parcelaatual || 1) + "/" + t;
+}
 function botoesAcao(i){
-  const pagarBtn = i.status==="pago"
-    ? `<button class="btn btn-warning btn-sm" onclick="protegido(function(){reabrirPagamento(${i.id})})">Reabrir</button>`
-    : `<button class="btn btn-success btn-sm" onclick="protegido(function(){abrirPagamento(${i.id})})">Pagar</button>`;
+  const pagarBtn = i.status==="pago" ? `<button class="btn btn-warning btn-sm" onclick="protegido(function(){reabrirPagamento(${i.id})})">Reabrir</button>` : `<button class="btn btn-success btn-sm" onclick="protegido(function(){abrirPagamento(${i.id})})">Pagar</button>`;
   return `<button class="btn btn-info btn-sm" onclick="protegido(function(){abrirEditar(${i.id})})">Editar</button> ${pagarBtn} <button class="btn btn-danger btn-sm" onclick="protegido(function(){excluirNota(${i.id})})">Excluir</button>`;
 }
-
 function renderizarTabela(){
   const mes = document.getElementById("filtroMes").value;
   const status = document.getElementById("filtroStatus").value;
@@ -251,7 +132,6 @@ function renderizarTabela(){
   if(mes) lista = lista.filter(i=>i.vencimento && dataISO(i.vencimento).slice(0,7)===mes);
   if(status) lista = lista.filter(i=>i.status===status);
   renderizarResumo(lista);
-
   const tbody = document.getElementById("tabela");
   tbody.innerHTML = lista.map(i=>`
     <tr>
@@ -260,6 +140,7 @@ function renderizarTabela(){
       <td>${i.placa || "-"}</td>
       <td>${i.nf}</td>
       <td class="valor">${formatarMoeda(i.valor)}</td>
+      <td>${textoParcela(i)}</td>
       <td><span class="status ${i.status}">${rotulo(i.status)}</span></td>
       <td>${formatarData(i.agendado)}</td>
       <td>${formatarData(i.pagoem)}</td>
@@ -267,7 +148,6 @@ function renderizarTabela(){
       <td style="display:flex;gap:6px;flex-wrap:wrap">${botoesAcao(i)}</td>
     </tr>
   `).join("");
-
   const cards = document.getElementById("cardsMobile");
   cards.innerHTML = lista.map(i=>`
     <div class="nota-card">
@@ -275,6 +155,7 @@ function renderizarTabela(){
       <div class="linha"><span>Placa</span><span>${i.placa || "-"}</span></div>
       <div class="linha"><span>NF</span><span>${i.nf}</span></div>
       <div class="linha"><span>Valor</span><span class="valor">${formatarMoeda(i.valor)}</span></div>
+      <div class="linha"><span>Parcela</span><span>${textoParcela(i)}</span></div>
       <div class="linha"><span>Status</span><span class="status ${i.status}">${rotulo(i.status)}</span></div>
       <div class="linha"><span>Vencimento</span><span>${formatarData(i.vencimento)}</span></div>
       <div class="linha"><span>Agendado</span><span>${formatarData(i.agendado)}</span></div>
@@ -284,7 +165,6 @@ function renderizarTabela(){
     </div>
   `).join("");
 }
-
 document.getElementById("filtroMes").addEventListener("change", renderizarTabela);
 document.getElementById("filtroStatus").addEventListener("change", renderizarTabela);
 
@@ -305,7 +185,6 @@ function confirmarSenha(){
   if(acaoPendente) acaoPendente();
   acaoPendente = null;
 }
-
 function abrirNovo(){
   document.getElementById("modalTitulo").textContent = "Nova nota";
   document.getElementById("idEdicao").value = "";
@@ -313,6 +192,8 @@ function abrirNovo(){
   document.getElementById("mPlaca").value = "";
   document.getElementById("mNf").value = "";
   document.getElementById("mValor").value = "";
+  document.getElementById("mParcelaAtual").value = "1";
+  document.getElementById("mParcelaTotal").value = "1";
   document.getElementById("mVencimento").value = "";
   document.getElementById("mAgendado").value = "";
   document.getElementById("mObs").value = "";
@@ -327,6 +208,8 @@ function abrirEditar(id){
   document.getElementById("mPlaca").value = item.placa || "";
   document.getElementById("mNf").value = item.nf;
   document.getElementById("mValor").value = item.valor;
+  document.getElementById("mParcelaAtual").value = item.parcelaatual || 1;
+  document.getElementById("mParcelaTotal").value = item.parcelatotal || 1;
   document.getElementById("mVencimento").value = dataISO(item.vencimento);
   document.getElementById("mAgendado").value = dataISO(item.agendado);
   document.getElementById("mObs").value = item.obs || "";
@@ -335,40 +218,58 @@ function abrirEditar(id){
 function fecharModal(){
   document.getElementById("modalOverlay").classList.remove("ativo");
 }
-
 async function salvarNota(){
   const id = document.getElementById("idEdicao").value;
   const veiculo = document.getElementById("mVeiculo").value.trim();
   const placa = document.getElementById("mPlaca").value.trim().toUpperCase();
   const nf = document.getElementById("mNf").value.trim();
   const valor = parseFloat(document.getElementById("mValor").value) || 0;
+  const parcelaAtual = parseInt(document.getElementById("mParcelaAtual").value) || 1;
+  const parcelaTotal = parseInt(document.getElementById("mParcelaTotal").value) || 1;
   const vencimento = document.getElementById("mVencimento").value;
   const agendado = document.getElementById("mAgendado").value;
   const obs = document.getElementById("mObs").value.trim();
   if(!veiculo || !nf || !valor){ alert("Preencha veiculo, NF e valor."); return; }
-
   try {
     if(id){
       await fetch("/api/notas", {
         method: "PUT",
         headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ id: parseInt(id), veiculo, placa, nf, valor, vencimento, agendado, obs })
+        body: JSON.stringify({ id: parseInt(id), veiculo, placa, nf, valor, vencimento, agendado, obs, parcelaAtual, parcelaTotal })
       });
+      fecharModal();
+      await carregarDados();
     } else {
       await fetch("/api/notas", {
         method: "POST",
         headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ veiculo, placa, nf, valor, vencimento, agendado, obs })
+        body: JSON.stringify({ veiculo, placa, nf, valor, vencimento, agendado, obs, parcelaAtual, parcelaTotal })
       });
+      await carregarDados();
+      if(parcelaAtual < parcelaTotal){
+        const proxVenc = somarMeses(vencimento, 1);
+        const proxAgendado = agendado ? somarMeses(agendado, 1) : "";
+        document.getElementById("modalTitulo").textContent = "Nova nota";
+        document.getElementById("idEdicao").value = "";
+        document.getElementById("mVeiculo").value = veiculo;
+        document.getElementById("mPlaca").value = placa;
+        document.getElementById("mNf").value = nf;
+        document.getElementById("mValor").value = valor;
+        document.getElementById("mParcelaAtual").value = parcelaAtual + 1;
+        document.getElementById("mParcelaTotal").value = parcelaTotal;
+        document.getElementById("mVencimento").value = proxVenc;
+        document.getElementById("mAgendado").value = proxAgendado;
+        document.getElementById("mObs").value = obs;
+        document.getElementById("modalOverlay").classList.add("ativo");
+      } else {
+        fecharModal();
+      }
     }
-    fecharModal();
-    await carregarDados();
   } catch(e){
     alert("Erro ao salvar. Tente novamente.");
     console.error(e);
   }
 }
-
 async function excluirNota(id){
   if(!confirm("Deseja realmente excluir esta nota?")) return;
   try {
@@ -383,7 +284,6 @@ async function excluirNota(id){
     console.error(e);
   }
 }
-
 function abrirPagamento(id){
   document.getElementById("idPagamento").value = id;
   document.getElementById("pData").value = new Date().toISOString().slice(0,10);
@@ -394,7 +294,6 @@ function abrirPagamento(id){
 function fecharModalPag(){
   document.getElementById("modalPagOverlay").classList.remove("ativo");
 }
-
 async function confirmarPagamento(){
   const id = parseInt(document.getElementById("idPagamento").value);
   const item = dados.find(d=>d.id===id);
@@ -406,7 +305,7 @@ async function confirmarPagamento(){
     await fetch("/api/notas", {
       method: "PUT",
       headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ id, veiculo:item.veiculo, placa:item.placa, nf:item.nf, valor:item.valor, vencimento:dataISO(item.vencimento), agendado:dataISO(item.agendado), obs, pagoEm, forma })
+      body: JSON.stringify({ id, veiculo:item.veiculo, placa:item.placa, nf:item.nf, valor:item.valor, vencimento:dataISO(item.vencimento), agendado:dataISO(item.agendado), obs, pagoEm, forma, parcelaAtual:item.parcelaatual, parcelaTotal:item.parcelatotal })
     });
     fecharModalPag();
     await carregarDados();
@@ -415,7 +314,6 @@ async function confirmarPagamento(){
     console.error(e);
   }
 }
-
 async function reabrirPagamento(id){
   if(!confirm("Reabrir este pagamento como pendente?")) return;
   const item = dados.find(d=>d.id===id);
@@ -424,7 +322,7 @@ async function reabrirPagamento(id){
     await fetch("/api/notas", {
       method: "PUT",
       headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ id, veiculo:item.veiculo, placa:item.placa, nf:item.nf, valor:item.valor, vencimento:dataISO(item.vencimento), agendado:dataISO(item.agendado), obs:item.obs, pagoEm:null, forma:"" })
+      body: JSON.stringify({ id, veiculo:item.veiculo, placa:item.placa, nf:item.nf, valor:item.valor, vencimento:dataISO(item.vencimento), agendado:dataISO(item.agendado), obs:item.obs, pagoEm:null, forma:"", parcelaAtual:item.parcelaatual, parcelaTotal:item.parcelatotal })
     });
     await carregarDados();
   } catch(e){
@@ -432,8 +330,6 @@ async function reabrirPagamento(id){
     console.error(e);
   }
 }
-
 carregarDados();
 </script>
-</body>
-</html>
+</body></html>
