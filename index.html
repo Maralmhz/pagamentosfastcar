@@ -12,6 +12,45 @@ header{display:flex;align-items:center;gap:16px;background:linear-gradient(90deg
 header img{width:60px;height:60px;border-radius:10px;background:#fff;padding:4px}
 header h1{margin:0;font-size:22px}
 header p{margin:2px 0 0;opacity:.9;font-size:13px}
+.resumo{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px}
+.card{background:var(--card);border-radius:10px;padding:16px;border-left:4px solid var(--azul)}
+.card.pendente{border-color:var(--amarelo)}
+.card.agendado{border-color:var(--azul)}
+.card.pago{border-color:var(--verde)}
+.card.vencido{border-color:var(--vermelho)}
+.card h3{margin:0 0 6px;font-size:12px;opacity:.7;font-weight:500}
+.card span{font-size:20px;font-weight:700}
+.filtros{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+select,input,textarea{background:#20242c;color:var(--texto);border:1px solid #333;border-radius:6px;padding:8px 10px;font-size:13px}
+button{cursor:pointer;border:none;border-radius:6px;padding:9px 14px;font-size:13px;font-weight:600;color:#fff}
+.btn-nova{background:var(--laranja)}
+.btn-editar{background:var(--azul)}
+.btn-pagar{background:var(--verde)}
+.btn-reabrir{background:#555}
+.btn-excluir{background:var(--vermelho)}
+.btn-print{background:#333}
+table{width:100%;border-collapse:collapse;background:var(--card);border-radius:10px;overflow:hidden}
+th,td{padding:10px 12px;text-align:left;font-size:13px;border-bottom:1px solid #262a32}
+th{background:#1f232b;font-size:12px;text-transform:uppercase;opacity:.7}
+tr:hover{background:#1c2029}
+.status{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;display:inline-block}
+.status.Pendente{background:#5a4a12;color:var(--amarelo)}
+.status.Agendado{background:#123a5a;color:#66b3ff}
+.status.Pago{background:#164a26;color:var(--verde)}
+.status.Vencido{background:#5a1616;color:var(--vermelho)}
+.acoes{display:flex;gap:6px;flex-wrap:wrap}
+.acoes button{padding:6px 10px;font-size:12px}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);align-items:center;justify-content:center;z-index:100}
+.modal-overlay.ativo{display:flex}
+.modal{background:var(--card);padding:24px;border-radius:12px;width:100%;max-width:420px;max-height:90vh;overflow:auto}
+.modal h2{margin-top:0;font-size:18px}
+.modal label{display:block;font-size:12px;opacity:.7;margin:10px 0 4px}
+.modal input,.modal select,.modal textarea{width:100%}
+.modal-acoes{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+.fechar{background:#333}
+footer{text-align:center;margin-top:30px;font-size:12px;opacity:.5}
+footer a{color:var(--azul)}
+@media print{.filtros,.acoes,header button,footer,.modal-overlay{display:none!important}}
 </style>
 </head>
 <body>
