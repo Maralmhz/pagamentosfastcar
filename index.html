@@ -44,8 +44,19 @@ tbody tr:hover{background:#f5f7fa}
 .btn-warning{background:#f39c12}
 .btn-danger{background:#e74c3c}
 .btn-sm{padding:6px 12px;font-size:12px}
-@media (max-width:768px){.header h1{font-size:20px}th,td{padding:8px 12px;font-size:13px}.summary{grid-template-columns:1fr 1fr}}
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);align-items:center;justify-content:center;z-index:100}
+.cards-mobile{display:none}
+.nota-card{background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:16px;margin-bottom:12px;box-shadow:0 2px 6px rgba(0,0,0,.05)}
+.nota-card .linha{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;border-bottom:1px solid #f0f0f0}
+.nota-card .linha:last-of-type{border-bottom:none}
+.nota-card .linha span:first-child{color:#666;font-weight:600}
+.nota-card .acoes-card{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+@media (max-width:768px){
+  .header h1{font-size:20px}
+  .summary{grid-template-columns:1fr 1fr}
+  .table-container{display:none}
+  .cards-mobile{display:block;padding:16px}
+}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);align-items:center;justify-content:center;z-index:100;padding:16px}
 .modal-overlay.ativo{display:flex}
 .modal{background:#fff;padding:24px;border-radius:12px;width:100%;max-width:420px;max-height:90vh;overflow:auto;color:#333}
 .modal h2{margin-bottom:10px;font-size:18px;color:#1e3c72}
@@ -53,18 +64,19 @@ tbody tr:hover{background:#f5f7fa}
 .modal input,.modal select,.modal textarea{width:100%;padding:8px 10px;border-radius:6px;border:1px solid #ccc;font-size:13px}
 .modal-acoes{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
 @media print{.actions,.filtros,.header .btn{display:none!important}}
+.loading{text-align:center;padding:40px;color:#666}
 </style>
 </head>
 <body>
 <div class="container">
 <div class="header">
-<img src="https://raw.githubusercontent.com/Maralmhz/CHECKLIST-FASTCAR-3.0/main/icon-512.png" alt="FASTCAR">
+<img src="https://raw.githubusercontent.com/Maralmhz/pagamentosfastcar/main/logo.png" onerror="this.style.display='none'">
 <h1>Controle de Pagamento</h1>
 <p>FASTCAR (Vitor Hugo)</p>
 </div>
 <div class="summary" id="resumo"></div>
 <div class="filtros">
-<select id="filtroMes"></select>
+<select id="filtroMes"><option value="">Todos os meses</option></select>
 <select id="filtroStatus">
 <option value="">Todos os status</option>
 <option value="pendente">Pendente</option>
@@ -73,30 +85,36 @@ tbody tr:hover{background:#f5f7fa}
 <option value="vencido">Vencido</option>
 </select>
 </div>
+<div id="loadingMsg" class="loading">Carregando dados...</div>
 <div class="table-container">
 <table>
 <thead>
-<tr><th>Data</th><th>Veiculo</th><th>Placa</th><th>NF</th><th>Valor</th><th>Status</th><th>Agendado</th><th>Pago em</th><th>Observacoes</th><th>Acoes</th></tr>
+<tr>
+<th>Data</th><th>Veiculo</th><th>Placa</th><th>NF</th><th>Valor</th><th>Status</th><th>Agendado</th><th>Pago em</th><th>Observacoes</th><th>Acoes</th>
+</tr>
 </thead>
 <tbody id="tabela"></tbody>
 </table>
 </div>
+<div class="cards-mobile" id="cardsMobile"></div>
 <div class="actions">
 <button class="btn btn-primary" onclick="window.print()">Imprimir</button>
 <button class="btn btn-success" onclick="abrirNovo()">+ Nova nota</button>
 </div>
 </div>
+
 <div class="modal-overlay" id="modalSenha">
 <div class="modal">
 <h2>Senha necessaria</h2>
 <label>Digite a senha para continuar</label>
 <input id="senhaInput" type="password" maxlength="4">
 <div class="modal-acoes">
-<button class="btn" style="background:#ccc;color:#333" onclick="fecharSenha()">Cancelar</button>
-<button class="btn btn-primary" onclick="confirmarSenha()">Confirmar</button>
+<button class="btn btn-danger" onclick="fecharSenha()">Cancelar</button>
+<button class="btn btn-success" onclick="confirmarSenha()">Confirmar</button>
 </div>
 </div>
 </div>
+
 <div class="modal-overlay" id="modalOverlay">
 <div class="modal">
 <h2 id="modalTitulo">Nova nota</h2>
@@ -114,13 +132,14 @@ tbody tr:hover{background:#f5f7fa}
 <label>Data agendada para pagamento</label>
 <input id="mAgendado" type="date">
 <label>Observacoes</label>
-<textarea id="mObs" rows="2"></textarea>
+<textarea id="mObs"></textarea>
 <div class="modal-acoes">
-<button class="btn" style="background:#ccc;color:#333" onclick="fecharModal()">Cancelar</button>
+<button class="btn btn-danger" onclick="fecharModal()">Cancelar</button>
 <button class="btn btn-success" onclick="salvarNota()">Salvar</button>
 </div>
 </div>
 </div>
+
 <div class="modal-overlay" id="modalPagOverlay">
 <div class="modal">
 <h2>Registrar pagamento</h2>
@@ -136,203 +155,285 @@ tbody tr:hover{background:#f5f7fa}
 <option>Boleto</option>
 </select>
 <label>Observacoes</label>
-<textarea id="pObs" rows="2"></textarea>
+<textarea id="pObs"></textarea>
 <div class="modal-acoes">
-<button class="btn" style="background:#ccc;color:#333" onclick="fecharModalPag()">Cancelar</button>
+<button class="btn btn-danger" onclick="fecharModalPag()">Cancelar</button>
 <button class="btn btn-success" onclick="confirmarPagamento()">Confirmar pagamento</button>
 </div>
 </div>
 </div>
+
 <script>
 const SENHA = "1010";
-const STORAGE_KEY = "fastcar_pagamentos";
-let dados = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null") || [
-{id:1, veiculo:"Complemento", placa:"", nf:"163", valor:1490.50, vencimento:"2026-09-02", agendado:"", pagoEm:"", forma:"", obs:""},
-{id:2, veiculo:"Mercedes", placa:"", nf:"149", valor:2400.00, vencimento:"2026-09-05", agendado:"", pagoEm:"", forma:"", obs:""},
-{id:3, veiculo:"Palio", placa:"", nf:"146", valor:2250.00, vencimento:"2026-09-09", agendado:"", pagoEm:"", forma:"", obs:""},
-{id:4, veiculo:"Onix", placa:"", nf:"130", valor:2125.00, vencimento:"2026-09-11", agendado:"", pagoEm:"", forma:"", obs:""},
-{id:5, veiculo:"C3", placa:"", nf:"154", valor:1815.00, vencimento:"2026-09-21", agendado:"", pagoEm:"", forma:"", obs:""},
-{id:6, veiculo:"Palio", placa:"", nf:"145", valor:1750.00, vencimento:"2026-09-22", agendado:"", pagoEm:"", forma:"", obs:""}
-];
+let dados = [];
 let acaoPendente = null;
-function salvar(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(dados)); }
-function formatarMoeda(v){ return "R$ " + Number(v).toLocaleString("pt-BR",{minimumFractionDigits:2}); }
-function formatarData(d){ if(!d) return "-"; const p = d.split("-"); return p[2]+"/"+p[1]+"/"+p[0]; }
-function calcularStatus(item){
-if(item.pagoEm) return "pago";
-const hoje = new Date().toISOString().slice(0,10);
-if(item.vencimento && item.vencimento < hoje) return "vencido";
-if(item.agendado) return "agendado";
-return "pendente";
+
+async function carregarDados(){
+  document.getElementById("loadingMsg").style.display = "block";
+  try {
+    const res = await fetch("/api/notas");
+    dados = await res.json();
+  } catch(e){
+    console.error(e);
+    alert("Erro ao carregar dados do servidor.");
+  }
+  document.getElementById("loadingMsg").style.display = "none";
+  popularFiltroMes();
+  renderizarTabela();
 }
-function rotulo(s){ return {pendente:"Pendente", agendado:"Agendado", pago:"Pago", vencido:"Vencido"}[s]; }
+
+function formatarMoeda(v){
+  return "R$ " + Number(v).toLocaleString("pt-BR",{minimumFractionDigits:2});
+}
+function formatarData(d){
+  if(!d) return "-";
+  const s = typeof d === "string" ? d : new Date(d).toISOString().slice(0,10);
+  const p = s.slice(0,10).split("-");
+  return p[2]+"/"+p[1]+"/"+p[0];
+}
+function dataISO(d){
+  if(!d) return "";
+  return typeof d === "string" ? d.slice(0,10) : new Date(d).toISOString().slice(0,10);
+}
+function calcularStatus(item){
+  if(item.pagoem) return "pago";
+  const hoje = new Date().toISOString().slice(0,10);
+  const venc = dataISO(item.vencimento);
+  if(venc && venc < hoje) return "vencido";
+  if(item.agendado) return "agendado";
+  return "pendente";
+}
+function rotulo(s){
+  return {pendente:"Pendente", agendado:"Agendado", pago:"Pago", vencido:"Vencido"}[s];
+}
 function popularFiltroMes(){
-const meses = new Set(dados.map(d => d.vencimento ? d.vencimento.slice(0,7) : null).filter(Boolean));
-const sel = document.getElementById("filtroMes");
-const atual = sel.value;
-sel.innerHTML = '<option value="">Todos os meses</option>';
-const nomes = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
-[...meses].sort().forEach(m=>{
-const partes = m.split("-");
-const opt = document.createElement("option");
-opt.value = m;
-opt.textContent = nomes[parseInt(partes[1])-1] + "/" + partes[0];
-sel.appendChild(opt);
-});
-sel.value = atual;
+  const meses = new Set(dados.map(d => d.vencimento ? dataISO(d.vencimento).slice(0,7) : null).filter(Boolean));
+  const sel = document.getElementById("filtroMes");
+  const atual = sel.value;
+  sel.innerHTML = '<option value="">Todos os meses</option>';
+  const nomes = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+  [...meses].sort().forEach(m=>{
+    const partes = m.split("-");
+    const opt = document.createElement("option");
+    opt.value = m;
+    opt.textContent = nomes[parseInt(partes[1])-1] + "/" + partes[0];
+    sel.appendChild(opt);
+  });
+  sel.value = atual;
 }
 function renderizarResumo(lista){
-const total = lista.reduce((s,i)=>s+Number(i.valor),0);
-const pendente = lista.filter(i=>calcularStatus(i)==="pendente").reduce((s,i)=>s+Number(i.valor),0);
-const agendado = lista.filter(i=>calcularStatus(i)==="agendado").reduce((s,i)=>s+Number(i.valor),0);
-const pago = lista.filter(i=>calcularStatus(i)==="pago").reduce((s,i)=>s+Number(i.valor),0);
-const vencido = lista.filter(i=>calcularStatus(i)==="vencido").reduce((s,i)=>s+Number(i.valor),0);
-document.getElementById("resumo").innerHTML = `
-<div class="summary-card"><h3>Total Geral</h3><div class="value">${formatarMoeda(total)}</div></div>
-<div class="summary-card"><h3>Pendente</h3><div class="value pending">${formatarMoeda(pendente)}</div></div>
-<div class="summary-card"><h3>Agendado</h3><div class="value scheduled">${formatarMoeda(agendado)}</div></div>
-<div class="summary-card"><h3>Pago</h3><div class="value paid">${formatarMoeda(pago)}</div></div>
-<div class="summary-card"><h3>Vencido</h3><div class="value pending">${formatarMoeda(vencido)}</div></div>
-<div class="summary-card"><h3>Servicos</h3><div class="value">${lista.length}</div></div>
-`;
+  const total = lista.reduce((s,i)=>s+Number(i.valor),0);
+  const pendente = lista.filter(i=>calcularStatus(i)==="pendente").reduce((s,i)=>s+Number(i.valor),0);
+  const agendado = lista.filter(i=>calcularStatus(i)==="agendado").reduce((s,i)=>s+Number(i.valor),0);
+  const pago = lista.filter(i=>calcularStatus(i)==="pago").reduce((s,i)=>s+Number(i.valor),0);
+  const vencido = lista.filter(i=>calcularStatus(i)==="vencido").reduce((s,i)=>s+Number(i.valor),0);
+  document.getElementById("resumo").innerHTML = `
+    <div class="summary-card"><h3>Total Geral</h3><div class="value">${formatarMoeda(total)}</div></div>
+    <div class="summary-card"><h3>Pendente</h3><div class="value pending">${formatarMoeda(pendente)}</div></div>
+    <div class="summary-card"><h3>Agendado</h3><div class="value scheduled">${formatarMoeda(agendado)}</div></div>
+    <div class="summary-card"><h3>Pago</h3><div class="value paid">${formatarMoeda(pago)}</div></div>
+    <div class="summary-card"><h3>Vencido</h3><div class="value pending">${formatarMoeda(vencido)}</div></div>
+    <div class="summary-card"><h3>Servicos</h3><div class="value">${lista.length}</div></div>
+  `;
 }
+
+function botoesAcao(i){
+  const pagarBtn = i.status==="pago"
+    ? `<button class="btn btn-warning btn-sm" onclick="protegido(function(){reabrirPagamento(${i.id})})">Reabrir</button>`
+    : `<button class="btn btn-success btn-sm" onclick="protegido(function(){abrirPagamento(${i.id})})">Pagar</button>`;
+  return `<button class="btn btn-info btn-sm" onclick="protegido(function(){abrirEditar(${i.id})})">Editar</button> ${pagarBtn} <button class="btn btn-danger btn-sm" onclick="protegido(function(){excluirNota(${i.id})})">Excluir</button>`;
+}
+
 function renderizarTabela(){
-const mes = document.getElementById("filtroMes").value;
-const status = document.getElementById("filtroStatus").value;
-let lista = dados.map(d=>({...d, status: calcularStatus(d)}));
-if(mes) lista = lista.filter(i=>i.vencimento && i.vencimento.slice(0,7)===mes);
-if(status) lista = lista.filter(i=>i.status===status);
-renderizarResumo(lista);
-const tbody = document.getElementById("tabela");
-tbody.innerHTML = lista.map(i=>`
-<tr>
-<td>${formatarData(i.vencimento)}</td>
-<td>${i.veiculo}</td>
-<td>${i.placa || "-"}</td>
-<td>${i.nf}</td>
-<td class="valor">${formatarMoeda(i.valor)}</td>
-<td><span class="status ${i.status}">${rotulo(i.status)}</span></td>
-<td>${formatarData(i.agendado)}</td>
-<td>${formatarData(i.pagoEm)}</td>
-<td>${i.obs || "-"}</td>
-<td style="display:flex;gap:6px;flex-wrap:wrap">
-<button class="btn btn-info btn-sm" onclick="protegido(function(){abrirEditar(${i.id})})">Editar</button>
-${i.status==="pago" ? '<button class="btn btn-warning btn-sm" onclick="protegido(function(){reabrirPagamento('+i.id+')})">Reabrir</button>' : '<button class="btn btn-success btn-sm" onclick="protegido(function(){abrirPagamento('+i.id+')})">Pagar</button>'}
-<button class="btn btn-danger btn-sm" onclick="protegido(function(){excluirNota(${i.id})})">Excluir</button>
-</td>
-</tr>
-`).join("");
+  const mes = document.getElementById("filtroMes").value;
+  const status = document.getElementById("filtroStatus").value;
+  let lista = dados.map(d=>({...d, status: calcularStatus(d)}));
+  if(mes) lista = lista.filter(i=>i.vencimento && dataISO(i.vencimento).slice(0,7)===mes);
+  if(status) lista = lista.filter(i=>i.status===status);
+  renderizarResumo(lista);
+
+  const tbody = document.getElementById("tabela");
+  tbody.innerHTML = lista.map(i=>`
+    <tr>
+      <td>${formatarData(i.vencimento)}</td>
+      <td>${i.veiculo}</td>
+      <td>${i.placa || "-"}</td>
+      <td>${i.nf}</td>
+      <td class="valor">${formatarMoeda(i.valor)}</td>
+      <td><span class="status ${i.status}">${rotulo(i.status)}</span></td>
+      <td>${formatarData(i.agendado)}</td>
+      <td>${formatarData(i.pagoem)}</td>
+      <td>${i.obs || "-"}</td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap">${botoesAcao(i)}</td>
+    </tr>
+  `).join("");
+
+  const cards = document.getElementById("cardsMobile");
+  cards.innerHTML = lista.map(i=>`
+    <div class="nota-card">
+      <div class="linha"><span>Veiculo</span><span>${i.veiculo}</span></div>
+      <div class="linha"><span>Placa</span><span>${i.placa || "-"}</span></div>
+      <div class="linha"><span>NF</span><span>${i.nf}</span></div>
+      <div class="linha"><span>Valor</span><span class="valor">${formatarMoeda(i.valor)}</span></div>
+      <div class="linha"><span>Status</span><span class="status ${i.status}">${rotulo(i.status)}</span></div>
+      <div class="linha"><span>Vencimento</span><span>${formatarData(i.vencimento)}</span></div>
+      <div class="linha"><span>Agendado</span><span>${formatarData(i.agendado)}</span></div>
+      <div class="linha"><span>Pago em</span><span>${formatarData(i.pagoem)}</span></div>
+      <div class="linha"><span>Obs</span><span>${i.obs || "-"}</span></div>
+      <div class="acoes-card">${botoesAcao(i)}</div>
+    </div>
+  `).join("");
 }
+
 document.getElementById("filtroMes").addEventListener("change", renderizarTabela);
 document.getElementById("filtroStatus").addEventListener("change", renderizarTabela);
+
 function protegido(fn){
-acaoPendente = fn;
-document.getElementById("senhaInput").value = "";
-document.getElementById("modalSenha").classList.add("ativo");
-setTimeout(()=>document.getElementById("senhaInput").focus(),100);
+  acaoPendente = fn;
+  document.getElementById("senhaInput").value = "";
+  document.getElementById("modalSenha").classList.add("ativo");
+  setTimeout(()=>document.getElementById("senhaInput").focus(),100);
 }
 function fecharSenha(){
-acaoPendente = null;
-document.getElementById("modalSenha").classList.remove("ativo");
+  acaoPendente = null;
+  document.getElementById("modalSenha").classList.remove("ativo");
 }
 function confirmarSenha(){
-const v = document.getElementById("senhaInput").value;
-if(v !== SENHA){ alert("Senha incorreta."); return; }
-document.getElementById("modalSenha").classList.remove("ativo");
-if(acaoPendente) acaoPendente();
-acaoPendente = null;
+  const v = document.getElementById("senhaInput").value;
+  if(v !== SENHA){ alert("Senha incorreta."); return; }
+  document.getElementById("modalSenha").classList.remove("ativo");
+  if(acaoPendente) acaoPendente();
+  acaoPendente = null;
 }
+
 function abrirNovo(){
-document.getElementById("modalTitulo").textContent = "Nova nota";
-document.getElementById("idEdicao").value = "";
-document.getElementById("mVeiculo").value = "";
-document.getElementById("mPlaca").value = "";
-document.getElementById("mNf").value = "";
-document.getElementById("mValor").value = "";
-document.getElementById("mVencimento").value = "";
-document.getElementById("mAgendado").value = "";
-document.getElementById("mObs").value = "";
-document.getElementById("modalOverlay").classList.add("ativo");
+  document.getElementById("modalTitulo").textContent = "Nova nota";
+  document.getElementById("idEdicao").value = "";
+  document.getElementById("mVeiculo").value = "";
+  document.getElementById("mPlaca").value = "";
+  document.getElementById("mNf").value = "";
+  document.getElementById("mValor").value = "";
+  document.getElementById("mVencimento").value = "";
+  document.getElementById("mAgendado").value = "";
+  document.getElementById("mObs").value = "";
+  document.getElementById("modalOverlay").classList.add("ativo");
 }
 function abrirEditar(id){
-const item = dados.find(d=>d.id===id);
-if(!item) return;
-document.getElementById("modalTitulo").textContent = "Editar nota";
-document.getElementById("idEdicao").value = item.id;
-document.getElementById("mVeiculo").value = item.veiculo;
-document.getElementById("mPlaca").value = item.placa || "";
-document.getElementById("mNf").value = item.nf;
-document.getElementById("mValor").value = item.valor;
-document.getElementById("mVencimento").value = item.vencimento;
-document.getElementById("mAgendado").value = item.agendado;
-document.getElementById("mObs").value = item.obs;
-document.getElementById("modalOverlay").classList.add("ativo");
+  const item = dados.find(d=>d.id===id);
+  if(!item) return;
+  document.getElementById("modalTitulo").textContent = "Editar nota";
+  document.getElementById("idEdicao").value = item.id;
+  document.getElementById("mVeiculo").value = item.veiculo;
+  document.getElementById("mPlaca").value = item.placa || "";
+  document.getElementById("mNf").value = item.nf;
+  document.getElementById("mValor").value = item.valor;
+  document.getElementById("mVencimento").value = dataISO(item.vencimento);
+  document.getElementById("mAgendado").value = dataISO(item.agendado);
+  document.getElementById("mObs").value = item.obs || "";
+  document.getElementById("modalOverlay").classList.add("ativo");
 }
 function fecharModal(){
-document.getElementById("modalOverlay").classList.remove("ativo");
+  document.getElementById("modalOverlay").classList.remove("ativo");
 }
-function salvarNota(){
-const id = document.getElementById("idEdicao").value;
-const veiculo = document.getElementById("mVeiculo").value.trim();
-const placa = document.getElementById("mPlaca").value.trim().toUpperCase();
-const nf = document.getElementById("mNf").value.trim();
-const valor = parseFloat(document.getElementById("mValor").value) || 0;
-const vencimento = document.getElementById("mVencimento").value;
-const agendado = document.getElementById("mAgendado").value;
-const obs = document.getElementById("mObs").value.trim();
-if(!veiculo || !nf || !valor){ alert("Preencha veiculo, NF e valor."); return; }
-if(id){
-const item = dados.find(d=>d.id===parseInt(id));
-item.veiculo=veiculo; item.placa=placa; item.nf=nf; item.valor=valor; item.vencimento=vencimento; item.agendado=agendado; item.obs=obs;
-} else {
-const novoId = dados.length ? Math.max(...dados.map(d=>d.id))+1 : 1;
-dados.push({id:novoId, veiculo, placa, nf, valor, vencimento, agendado, pagoEm:"", forma:"", obs});
+
+async function salvarNota(){
+  const id = document.getElementById("idEdicao").value;
+  const veiculo = document.getElementById("mVeiculo").value.trim();
+  const placa = document.getElementById("mPlaca").value.trim().toUpperCase();
+  const nf = document.getElementById("mNf").value.trim();
+  const valor = parseFloat(document.getElementById("mValor").value) || 0;
+  const vencimento = document.getElementById("mVencimento").value;
+  const agendado = document.getElementById("mAgendado").value;
+  const obs = document.getElementById("mObs").value.trim();
+  if(!veiculo || !nf || !valor){ alert("Preencha veiculo, NF e valor."); return; }
+
+  try {
+    if(id){
+      await fetch("/api/notas", {
+        method: "PUT",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ id: parseInt(id), veiculo, placa, nf, valor, vencimento, agendado, obs })
+      });
+    } else {
+      await fetch("/api/notas", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ veiculo, placa, nf, valor, vencimento, agendado, obs })
+      });
+    }
+    fecharModal();
+    await carregarDados();
+  } catch(e){
+    alert("Erro ao salvar. Tente novamente.");
+    console.error(e);
+  }
 }
-salvar();
-fecharModal();
-popularFiltroMes();
-renderizarTabela();
+
+async function excluirNota(id){
+  if(!confirm("Deseja realmente excluir esta nota?")) return;
+  try {
+    await fetch("/api/notas", {
+      method: "DELETE",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ id })
+    });
+    await carregarDados();
+  } catch(e){
+    alert("Erro ao excluir.");
+    console.error(e);
+  }
 }
-function excluirNota(id){
-if(!confirm("Deseja realmente excluir esta nota?")) return;
-dados = dados.filter(d=>d.id!==id);
-salvar();
-popularFiltroMes();
-renderizarTabela();
-}
+
 function abrirPagamento(id){
-document.getElementById("idPagamento").value = id;
-document.getElementById("pData").value = new Date().toISOString().slice(0,10);
-document.getElementById("pForma").value = "PIX";
-document.getElementById("pObs").value = "";
-document.getElementById("modalPagOverlay").classList.add("ativo");
+  document.getElementById("idPagamento").value = id;
+  document.getElementById("pData").value = new Date().toISOString().slice(0,10);
+  document.getElementById("pForma").value = "PIX";
+  document.getElementById("pObs").value = "";
+  document.getElementById("modalPagOverlay").classList.add("ativo");
 }
 function fecharModalPag(){
-document.getElementById("modalPagOverlay").classList.remove("ativo");
+  document.getElementById("modalPagOverlay").classList.remove("ativo");
 }
-function confirmarPagamento(){
-const id = parseInt(document.getElementById("idPagamento").value);
-const item = dados.find(d=>d.id===id);
-if(!item) return;
-item.pagoEm = document.getElementById("pData").value;
-item.forma = document.getElementById("pForma").value;
-item.obs = document.getElementById("pObs").value || item.obs;
-salvar();
-fecharModalPag();
-renderizarTabela();
+
+async function confirmarPagamento(){
+  const id = parseInt(document.getElementById("idPagamento").value);
+  const item = dados.find(d=>d.id===id);
+  if(!item) return;
+  const pagoEm = document.getElementById("pData").value;
+  const forma = document.getElementById("pForma").value;
+  const obs = document.getElementById("pObs").value || item.obs;
+  try {
+    await fetch("/api/notas", {
+      method: "PUT",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ id, veiculo:item.veiculo, placa:item.placa, nf:item.nf, valor:item.valor, vencimento:dataISO(item.vencimento), agendado:dataISO(item.agendado), obs, pagoEm, forma })
+    });
+    fecharModalPag();
+    await carregarDados();
+  } catch(e){
+    alert("Erro ao confirmar pagamento.");
+    console.error(e);
+  }
 }
-function reabrirPagamento(id){
-if(!confirm("Reabrir este pagamento como pendente?")) return;
-const item = dados.find(d=>d.id===id);
-if(!item) return;
-item.pagoEm = "";
-item.forma = "";
-salvar();
-renderizarTabela();
+
+async function reabrirPagamento(id){
+  if(!confirm("Reabrir este pagamento como pendente?")) return;
+  const item = dados.find(d=>d.id===id);
+  if(!item) return;
+  try {
+    await fetch("/api/notas", {
+      method: "PUT",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ id, veiculo:item.veiculo, placa:item.placa, nf:item.nf, valor:item.valor, vencimento:dataISO(item.vencimento), agendado:dataISO(item.agendado), obs:item.obs, pagoEm:null, forma:"" })
+    });
+    await carregarDados();
+  } catch(e){
+    alert("Erro ao reabrir pagamento.");
+    console.error(e);
+  }
 }
-popularFiltroMes();
-renderizarTabela();
+
+carregarDados();
 </script>
 </body>
-</html>
 </html>
