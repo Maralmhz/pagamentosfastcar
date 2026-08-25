@@ -11,8 +11,12 @@ async function ensureTable() {
     agendado DATE,
     pagoem DATE,
     forma TEXT,
-    obs TEXT
+    obs TEXT,
+    parcelaatual INTEGER DEFAULT 1,
+    parcelatotal INTEGER DEFAULT 1
   )`;
+  await sql`ALTER TABLE notas ADD COLUMN IF NOT EXISTS parcelaatual INTEGER DEFAULT 1`;
+  await sql`ALTER TABLE notas ADD COLUMN IF NOT EXISTS parcelatotal INTEGER DEFAULT 1`;
 }
 
 module.exports = async function handler(req, res) {
@@ -25,16 +29,16 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
-      const { veiculo, placa, nf, valor, vencimento, agendado, obs } = req.body;
+      const { veiculo, placa, nf, valor, vencimento, agendado, obs, parcelaAtual, parcelaTotal } = req.body;
       const { rows } = await sql`
-        INSERT INTO notas (veiculo, placa, nf, valor, vencimento, agendado, pagoem, forma, obs)
-        VALUES (${veiculo}, ${placa}, ${nf}, ${valor}, ${vencimento || null}, ${agendado || null}, NULL, '', ${obs || ''})
+        INSERT INTO notas (veiculo, placa, nf, valor, vencimento, agendado, pagoem, forma, obs, parcelaatual, parcelatotal)
+        VALUES (${veiculo}, ${placa}, ${nf}, ${valor}, ${vencimento || null}, ${agendado || null}, NULL, '', ${obs || ''}, ${parcelaAtual || 1}, ${parcelaTotal || 1})
         RETURNING *`;
       return res.status(200).json(rows[0]);
     }
 
     if (req.method === 'PUT') {
-      const { id, veiculo, placa, nf, valor, vencimento, agendado, obs, pagoEm, forma } = req.body;
+      const { id, veiculo, placa, nf, valor, vencimento, agendado, obs, pagoEm, forma, parcelaAtual, parcelaTotal } = req.body;
       const { rows } = await sql`
         UPDATE notas SET
           veiculo = ${veiculo},
@@ -45,7 +49,9 @@ module.exports = async function handler(req, res) {
           agendado = ${agendado || null},
           obs = ${obs || ''},
           pagoem = ${pagoEm || null},
-          forma = ${forma || ''}
+          forma = ${forma || ''},
+          parcelaatual = ${parcelaAtual || 1},
+          parcelatotal = ${parcelaTotal || 1}
         WHERE id = ${id}
         RETURNING *`;
       return res.status(200).json(rows[0]);
