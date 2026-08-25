@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pagamentos FASTCAR</title>
+<style>
+  :root{
+    --azul:#0066cc;
+    --laranja:#ff6600;
+    --bg:#0f1115;
+    --card:#181b21;
+    --texto:#e8e8e8;
+    --verde:#2ecc71;
+    --amarelo:#f1c40f;
+    --vermelho:#e74c3c;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;font-family:Segoe UI,Arial,sans-serif;
+    background:linear-gradient(135deg,var(--bg),#1a1d24);
+    color:var(--texto);padding:20px;
+  }
+  header{
+    display:flex;align-items:center;gap:16px;
+    background:linear-gradient(90deg,var(--azul),var(--laranja));
+    padding:20px;border-radius:12px;margin-bottom:24px;
+  }
+  header img{width:60px;height:60px;border-radius:10px;background:#fff;padding:4px}
+  header h1{margin:0;font-size:22px}
+  header p{margin:2px 0 0;opacity:.9;font-size:13px}
+
+  .resumo{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px}
+  .card{background:var(--card);border-radius:10px;padding:16px;border-left:4px solid var(--azul)}
+  .card.pendente{border-color:var(--amarelo)}
+  .card.agendado{border-color:var(--azul)}
+  .card.pago{border-color:var(--verde)}
+  .card.vencido{border-color:var(--vermelho)}
+  .card h3{margin:0 0 6px;font-size:12px;opacity:.7;font-weight:500}
+  .card span{font-size:20px;font-weight:700}
+
+  .filtros{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+  select,input{
+    background:#20242c;color:var(--texto);border:1px solid #333;
+    border-radius:6px;padding:8px 10px;font-size:13px
+  }
+  button{
+    cursor:pointer;border:none;border-radius:6px;padding:9px 14px;
+    font-size:13px;font-weight:600;color:#fff
+  }
+  .btn-nova{background:var(--laranja)}
+  .btn-editar{background:var(--azul)}
+  .btn-pagar{background:var(--verde)}
+  .btn-reabrir{background:#555}
+  .btn-excluir{background:var(--vermelho)}
+  .btn-print{background:#333}
+
+  table{width:100%;border-collapse:collapse;background:var(--card);border-radius:10px;overflow:hidden}
+  th,td{padding:10px 12px;text-align:left;font-size:13px;border-bottom:1px solid #262a32}
+  th{background:#1f232b;font-size:12px;text-transform:uppercase;opacity:.7}
+  tr:hover{background:#1c2029}
+  .status{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;display:inline-block}
+  .status.Pendente{background:#5a4a12;color:var(--amarelo)}
+  .status.Agendado{background:#123a5a;color:#66b3ff}
+  .status.Pago{background:#164a26;color:var(--verde)}
+  .status.Vencido{background:#5a1616;color:var(--vermelho)}
+  .acoes{display:flex;gap:6px;flex-wrap:wrap}
+  .acoes button{padding:6px 10px;font-size:12px}
+
+  .modal-overlay{
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);
+    align-items:center;justify-content:center;z-index:100
+  }
+  .modal-overlay.ativo{display:flex}
+  .modal{background:var(--card);padding:24px;border-radius:12px;width:100%;max-width:420px;max-height:90vh;overflow:auto}
+  .modal h2{margin-top:0;font-size:18px}
+  .modal label{display:block;font-size:12px;opacity:.7;margin:10px 0 4px}
+  .modal input,.modal select,.modal textarea{width:100%}
+  .modal-acoes{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+  .fechar{background:#333}
+
+  footer{text-align:center;margin-top:30px;font-size:12px;opacity:.5}
+  footer a{color:var(--azul)}
+
+  @media print{
+    .filtros,.acoes,header button,footer,.modal-overlay{display:none!important}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <img src="https://raw.githubusercontent.com/Maralmhz/CHECKLIST-FASTCAR-3.0/main/icon-512.png" alt="FASTCAR">
+  <div>
+    <h1>Painel de Pagamentos — FASTCAR (Vitor Hugo)</h1>
+    <p>Controle de notas fiscais, vencimentos e pagamentos</p>
+  </div>
+</header>
+
+<div class="resumo" id="resumo"></div>
+
+<div class="filtros">
+  <select id="filtroMes"></select>
+  <select id="filtroStatus">
+    <option value="">Todos os status</option>
+    <option value="Pendente">Pendente</option>
+    <option value="Agendado">Agendado</option>
+    <option value="Pago">Pago</option>
+    <option value="Vencido">Vencido</option>
+  </select>
+  <button class="btn-nova" onclick="abrirNovo()">+ Nova nota</button>
+  <button class="btn-print" onclick="window.print()">Imprimir</button>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Veículo</th><th>NF</th><th>Valor</th><th>Vencimento</th>
+      <th>Agendado</th><th>Pago em</th><th>Status</th><th>Obs.</th><th>Ações</th>
+    </tr>
+  </thead>
+  <tbody id="tabela"></tbody>
+</table>
+
+<footer>
+  Painel FASTCAR • desenvolvido para <a href="https://github.com/Maralmhz" target="_blank">Maralmhz</a>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitulo">Nova nota</h2>
+    <input type="hidden" id="idEdicao">
+    abel>Veículo</label>
+    <input id="mVeiculo" placeholder="Ex: Palio">
+    abel>Número da NF</label>
+    <input id="mNf" placeholder="Ex: 145">
+    abel>Valor (R$)</label>
+    <input id="mValor" type="number" step="0.01" placeholder="0,00">
+    abel>Data de vencimento</label>
+    <input id="mVencimento" type="date">
+    abel>Data agendada para pagamento</label>
+    <input id="mAgendado" type="date">
+    abel>Observações</label>
+    <textarea id="mObs" rows="2" placeholder="Ex: pago via PIX / parcelado em 2x"></textarea>
+    <div class="modal-acoes">
+      <button class="fechar" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-nova" onclick="salvarNota()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PAGAMENTO -->
+<div class="modal-overlay" id="modalPagOverlay">
+  <div class="modal">
+    <h2>Registrar pagamento</h2>
+    <input type="hidden" id="idPagamento">
+    abel>Data do pagamento</label>
+    <input id="pData" type="date">
+    abel>Forma de pagamento</label>
+    <select id="pForma">
+      <option>PIX</option>
+      <option>Transferência</option>
+      <option>Dinheiro</option>
+      <option>Cartão</option>
+      <option>Boleto</option>
+    </select>
+    abel>Observações</label>
+    <textarea id="pObs" rows="2"></textarea>
+    <div class="modal-acoes">
+      <button class="fechar" onclick="fecharModalPag()">Cancelar</button>
+      <button class="btn-pagar" onclick="confirmarPagamento()">Confirmar pagamento</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = "fastcar_pagamentos";
+
+let dados = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null") || [
+  {id:1, veiculo:"Complemento", nf:"163", valor:1490.50, vencimento:"2026-09-02", agendado:"", pagoEm:"", forma:"", obs:"", status:"Pendente"},
+  {id:2, veiculo:"Mercedes", nf:"149", valor:2400.00, vencimento:"2026-09-05", agendado:"", pagoEm:"", forma:"", obs:"", status:"Pendente"},
+  {id:3, veiculo:"Palio", nf:"146", valor:2250.00, vencimento:"2026-09-09", agendado:"", pagoEm:"", forma:"", obs:"", status:"Pendente"},
+  {id:4, veiculo:"Ônix", nf:"130", valor:2125.00, vencimento:"2026-09-11", agendado:"", pagoEm:"", forma:"", obs:"", status:"Pendente"},
+  {id:5, veiculo:"C3", nf:"154", valor:1815.00, vencimento:"2026-09-21", agendado:"", pagoEm:"", forma:"", obs:"", status:"Pendente"},
+  {id:6, veiculo:"Palio", nf:"145", valor:1750.00, vencimento:"2026-09-22", agendado:"", pagoEm:"", forma:"", obs:"", status:"Pendente"}
+];
+
+function salvar(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(dados));
+}
+
+function formatarMoeda(v){
+  return "R$ " + Number(v).toLocaleString("pt-BR",{minimumFractionDigits:2});
+}
+function formatarData(d){
+  if(!d) return "—";
+  const [ano,mes,dia] = d.split("-");
+  return `${dia}/${mes}/${ano}`;
+}
+
+function calcularStatus(item){
+  if(item.pagoEm) return "Pago";
+  const hoje = new Date().toISOString().slice(0,10);
+  if(item.vencimento && item.vencimento < hoje) return "Vencido";
+  if(item.agendado) return "Agendado";
+  return "Pendente";
+}
+
+function popularFiltroMes(){
+  const meses = new Set(dados.map(d => d.vencimento ? d.vencimento.slice(0,7) : null).filter(Boolean));
+  const sel = document.getElementById("filtroMes");
+  sel.innerHTML = '<option value="">Todos os meses</option>';
+  [...meses].sort().forEach(m=>{
+    const [ano,mes] = m.split("-");
+    const nomes = 
