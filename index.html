@@ -127,5 +127,171 @@ footer a{color:var(--azul)}
 </div>
 </div>
 
+<script>
+const STORAGE_KEY = "fastcar_pagamentos";
+let dados = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null") || [
+{id:1, veiculo:"Complemento", nf:"163", valor:1490.50, vencimento:"2026-09-02", agendado:"", pagoEm:"", forma:"", obs:""},
+{id:2, veiculo:"Mercedes", nf:"149", valor:2400.00, vencimento:"2026-09-05", agendado:"", pagoEm:"", forma:"", obs:""},
+{id:3, veiculo:"Palio", nf:"146", valor:2250.00, vencimento:"2026-09-09", agendado:"", pagoEm:"", forma:"", obs:""},
+{id:4, veiculo:"Onix", nf:"130", valor:2125.00, vencimento:"2026-09-11", agendado:"", pagoEm:"", forma:"", obs:""},
+{id:5, veiculo:"C3", nf:"154", valor:1815.00, vencimento:"2026-09-21", agendado:"", pagoEm:"", forma:"", obs:""},
+{id:6, veiculo:"Palio", nf:"145", valor:1750.00, vencimento:"2026-09-22", agendado:"", pagoEm:"", forma:"", obs:""}
+];
+function salvar(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(dados)); }
+function formatarMoeda(v){ return "R$ " + Number(v).toLocaleString("pt-BR",{minimumFractionDigits:2}); }
+function formatarData(d){ if(!d) return "-"; const p = d.split("-"); return p[2]+"/"+p[1]+"/"+p[0]; }
+function calcularStatus(item){
+if(item.pagoEm) return "Pago";
+const hoje = new Date().toISOString().slice(0,10);
+if(item.vencimento && item.vencimento < hoje) return "Vencido";
+if(item.agendado) return "Agendado";
+return "Pendente";
+}
+function popularFiltroMes(){
+const meses = new Set(dados.map(d => d.vencimento ? d.vencimento.slice(0,7) : null).filter(Boolean));
+const sel = document.getElementById("filtroMes");
+const atual = sel.value;
+sel.innerHTML = '<option value="">Todos os meses</option>';
+const nomes = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+[...meses].sort().forEach(m=>{
+const partes = m.split("-");
+const opt = document.createElement("option");
+opt.value = m;
+opt.textContent = nomes[parseInt(partes[1])-1] + "/" + partes[0];
+sel.appendChild(opt);
+});
+sel.value = atual;
+}
+function renderizarResumo(lista){
+const total = lista.reduce((s,i)=>s+Number(i.valor),0);
+const pendente = lista.filter(i=>calcularStatus(i)==="Pendente").reduce((s,i)=>s+Number(i.valor),0);
+const agendado = lista.filter(i=>calcularStatus(i)==="Agendado").reduce((s,i)=>s+Number(i.valor),0);
+const pago = lista.filter(i=>calcularStatus(i)==="Pago").reduce((s,i)=>s+Number(i.valor),0);
+const vencido = lista.filter(i=>calcularStatus(i)==="Vencido").reduce((s,i)=>s+Number(i.valor),0);
+document.getElementById("resumo").innerHTML = `
+<div class="card"><h3>Total geral</h3><span>${formatarMoeda(total)}</span></div>
+<div class="card pendente"><h3>Pendente</h3><span>${formatarMoeda(pendente)}</span></div>
+<div class="card agendado"><h3>Agendado</h3><span>${formatarMoeda(agendado)}</span></div>
+<div class="card pago"><h3>Pago</h3><span>${formatarMoeda(pago)}</span></div>
+<div class="card vencido"><h3>Vencido</h3><span>${formatarMoeda(vencido)}</span></div>
+`;
+}
+function renderizarTabela(){
+const mes = document.getElementById("filtroMes").value;
+const status = document.getElementById("filtroStatus").value;
+let lista = dados.map(d=>({...d, status: calcularStatus(d)}));
+if(mes) lista = lista.filter(i=>i.vencimento && i.vencimento.slice(0,7)===mes);
+if(status) lista = lista.filter(i=>i.status===status);
+renderizarResumo(lista);
+const tbody = document.getElementById("tabela");
+tbody.innerHTML = lista.map(i=>`
+<tr>
+<td>${i.veiculo}</td>
+<td>${i.nf}</td>
+<td>${formatarMoeda(i.valor)}</td>
+<td>${formatarData(i.vencimento)}</td>
+<td>${formatarData(i.agendado)}</td>
+<td>${formatarData(i.pagoEm)}</td>
+<td><span class="status ${i.status}">${i.status}</span></td>
+<td>${i.obs || "-"}</td>
+<td class="acoes">
+<button class="btn-editar" onclick="abrirEditar(${i.id})">Editar</button>
+${i.status==="Pago" ? '<button class="btn-reabrir" onclick="reabrirPagamento('+i.id+')">Reabrir</button>' : '<button class="btn-pagar" onclick="abrirPagamento('+i.id+')">Pagar</button>'}
+<button class="btn-excluir" onclick="excluirNota(${i.id})">Excluir</button>
+</td>
+</tr>
+`).join("");
+}
+document.getElementById("filtroMes").addEventListener("change", renderizarTabela);
+document.getElementById("filtroStatus").addEventListener("change", renderizarTabela);
+function abrirNovo(){
+document.getElementById("modalTitulo").textContent = "Nova nota";
+document.getElementById("idEdicao").value = "";
+document.getElementById("mVeiculo").value = "";
+document.getElementById("mNf").value = "";
+document.getElementById("mValor").value = "";
+document.getElementById("mVencimento").value = "";
+document.getElementById("mAgendado").value = "";
+document.getElementById("mObs").value = "";
+document.getElementById("modalOverlay").classList.add("ativo");
+}
+function abrirEditar(id){
+const item = dados.find(d=>d.id===id);
+if(!item) return;
+document.getElementById("modalTitulo").textContent = "Editar nota";
+document.getElementById("idEdicao").value = item.id;
+document.getElementById("mVeiculo").value = item.veiculo;
+document.getElementById("mNf").value = item.nf;
+document.getElementById("mValor").value = item.valor;
+document.getElementById("mVencimento").value = item.vencimento;
+document.getElementById("mAgendado").value = item.agendado;
+document.getElementById("mObs").value = item.obs;
+document.getElementById("modalOverlay").classList.add("ativo");
+}
+function fecharModal(){
+document.getElementById("modalOverlay").classList.remove("ativo");
+}
+function salvarNota(){
+const id = document.getElementById("idEdicao").value;
+const veiculo = document.getElementById("mVeiculo").value.trim();
+const nf = document.getElementById("mNf").value.trim();
+const valor = parseFloat(document.getElementById("mValor").value) || 0;
+const vencimento = document.getElementById("mVencimento").value;
+const agendado = document.getElementById("mAgendado").value;
+const obs = document.getElementById("mObs").value.trim();
+if(!veiculo || !nf || !valor){ alert("Preencha veiculo, NF e valor."); return; }
+if(id){
+const item = dados.find(d=>d.id===parseInt(id));
+item.veiculo=veiculo; item.nf=nf; item.valor=valor; item.vencimento=vencimento; item.agendado=agendado; item.obs=obs;
+} else {
+const novoId = dados.length ? Math.max(...dados.map(d=>d.id))+1 : 1;
+dados.push({id:novoId, veiculo, nf, valor, vencimento, agendado, pagoEm:"", forma:"", obs});
+}
+salvar();
+fecharModal();
+popularFiltroMes();
+renderizarTabela();
+}
+function excluirNota(id){
+if(!confirm("Deseja realmente excluir esta nota?")) return;
+dados = dados.filter(d=>d.id!==id);
+salvar();
+popularFiltroMes();
+renderizarTabela();
+}
+function abrirPagamento(id){
+document.getElementById("idPagamento").value = id;
+document.getElementById("pData").value = new Date().toISOString().slice(0,10);
+document.getElementById("pForma").value = "PIX";
+document.getElementById("pObs").value = "";
+document.getElementById("modalPagOverlay").classList.add("ativo");
+}
+function fecharModalPag(){
+document.getElementById("modalPagOverlay").classList.remove("ativo");
+}
+function confirmarPagamento(){
+const id = parseInt(document.getElementById("idPagamento").value);
+const item = dados.find(d=>d.id===id);
+if(!item) return;
+item.pagoEm = document.getElementById("pData").value;
+item.forma = document.getElementById("pForma").value;
+item.obs = document.getElementById("pObs").value || item.obs;
+salvar();
+fecharModalPag();
+renderizarTabela();
+}
+function reabrirPagamento(id){
+if(!confirm("Reabrir este pagamento como pendente?")) return;
+const item = dados.find(d=>d.id===id);
+if(!item) return;
+item.pagoEm = "";
+item.forma = "";
+salvar();
+renderizarTabela();
+}
+popularFiltroMes();
+renderizarTabela();
+</script>
 </body>
+</html>
 </html>
