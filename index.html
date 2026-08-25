@@ -61,5 +61,71 @@ footer a{color:var(--azul)}
 <p>Controle de notas fiscais, vencimentos e pagamentos</p>
 </div>
 </header>
+<div class="resumo" id="resumo"></div>
+<div class="filtros">
+<select id="filtroMes"></select>
+<select id="filtroStatus">
+<option value="">Todos os status</option>
+<option value="Pendente">Pendente</option>
+<option value="Agendado">Agendado</option>
+<option value="Pago">Pago</option>
+<option value="Vencido">Vencido</option>
+</select>
+<button class="btn-nova" onclick="abrirNovo()">+ Nova nota</button>
+<button class="btn-print" onclick="window.print()">Imprimir</button>
+</div>
+<table>
+<thead>
+<tr><th>Veiculo</th><th>NF</th><th>Valor</th><th>Vencimento</th><th>Agendado</th><th>Pago em</th><th>Status</th><th>Obs.</th><th>Acoes</th></tr>
+</thead>
+<tbody id="tabela"></tbody>
+</table>
+<footer>Painel FASTCAR - desenvolvido para <a href="https://github.com/Maralmhz" target="_blank">Maralmhz</a></footer>
+
+<div class="modal-overlay" id="modalOverlay">
+<div class="modal">
+<h2 id="modalTitulo">Nova nota</h2>
+<input type="hidden" id="idEdicao">
+<label>Veiculo</label>
+<input id="mVeiculo">
+<label>Numero da NF</label>
+<input id="mNf">
+<label>Valor (R$)</label>
+<input id="mValor" type="number" step="0.01">
+<label>Data de vencimento</label>
+<input id="mVencimento" type="date">
+<label>Data agendada para pagamento</label>
+<input id="mAgendado" type="date">
+<label>Observacoes</label>
+<textarea id="mObs" rows="2"></textarea>
+<div class="modal-acoes">
+<button class="fechar" onclick="fecharModal()">Cancelar</button>
+<button class="btn-nova" onclick="salvarNota()">Salvar</button>
+</div>
+</div>
+</div>
+<div class="modal-overlay" id="modalPagOverlay">
+<div class="modal">
+<h2>Registrar pagamento</h2>
+<input type="hidden" id="idPagamento">
+<label>Data do pagamento</label>
+<input id="pData" type="date">
+<label>Forma de pagamento</label>
+<select id="pForma">
+<option>PIX</option>
+<option>Transferencia</option>
+<option>Dinheiro</option>
+<option>Cartao</option>
+<option>Boleto</option>
+</select>
+<label>Observacoes</label>
+<textarea id="pObs" rows="2"></textarea>
+<div class="modal-acoes">
+<button class="fechar" onclick="fecharModalPag()">Cancelar</button>
+<button class="btn-pagar" onclick="confirmarPagamento()">Confirmar pagamento</button>
+</div>
+</div>
+</div>
+
 </body>
 </html>
